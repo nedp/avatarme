@@ -1,0 +1,16 @@
+{
+	"ImportPath": "github.com/nedp/avatarme",
+	"GoVersion": "go1.3.3",
+	"Deps": [
+		{
+			"ImportPath": "bitbucket.org/nedp/avatarme/identicon",
+			"Comment": "null-2",
+			"Rev": "85044dd51d0c635497e20fb922d4bcd8f4069541"
+		},
+		{
+			"ImportPath": "github.com/dchest/siphash",
+			"Comment": "v1.0.0-10-g02f384c",
+			"Rev": "02f384c367c1697afc2322439bf9e28d0c2957a7"
+		}
+	]
+}
