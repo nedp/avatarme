@@ -11,9 +11,9 @@ import (
 )
 
 const (
-	defaultSize = 128
+	defaultSize = 130
 	defaultBorder = 1
-	defaultNBlocks = 6
+	defaultNBlocks = 11
 )
 
 var bgColour = color.NRGBA{
