@@ -1,7 +1,7 @@
 package main
 
 import (
-	"bitbucket.org/nedp/avatarme/identicon"
+	"github.com/nedp/avatarme/identicon"
 	"net/http"
 	"os"
 	"strings"
@@ -10,8 +10,11 @@ import (
 	"log"
 )
 
-const defaultSize = 512
-const nBlocks = 6
+const (
+	defaultSize = 128
+	defaultBorder = 1
+	defaultNBlocks = 6
+)
 
 var bgColour = color.NRGBA{
 	R: 0xF0,
@@ -20,34 +23,48 @@ var bgColour = color.NRGBA{
 	A: 0xFF,
 }
 
-var hashKey = []byte{
-	0x11, 0xBB, 0x22, 0xAA,
-	0x33, 0x00, 0xEE, 0x66,
-	0x99, 0x44, 0x77, 0x88,
-	0xCC, 0xFF, 0x55, 0xDD,
-}
-
 func handler(w http.ResponseWriter, r *http.Request) {
 	log.Println("Recieved request", r.URL.Path)
 	args := strings.Split(r.URL.Path, "/")
 	path := args[1:]
 
 	var size int
-	if s, ok := r.URL.Query()["s"]; ok {
-		tmp, err := strconv.ParseInt(s[0], 10, 0)
+	if q, ok := r.URL.Query()["s"]; ok {
+		tmp, err := strconv.ParseInt(q[0], 10, 0)
 		if err != nil {
-			http.Error(w, "", http.StatusBadRequest)
-			return
+			size = defaultSize
+		} else {
+			size = int(tmp)
 		}
-		size = int(tmp)
 	} else {
 		size = defaultSize
 	}
 
-	if len(path) != 1 {
-		http.Error(w, "", http.StatusBadRequest)
-		return
+	var border int
+	if q, ok := r.URL.Query()["b"]; ok {
+		tmp, err := strconv.ParseInt(q[0], 10, 0)
+		if err != nil {
+			border = defaultBorder
+		} else {
+			border = int(tmp)
+		}
+	} else {
+		border = defaultBorder
 	}
+
+	var nBlocks int
+	if q, ok := r.URL.Query()["n"]; ok {
+		tmp, err := strconv.ParseInt(q[0], 10, 0)
+		if err != nil {
+			nBlocks = defaultNBlocks
+		} else {
+			nBlocks = int(tmp)
+		}
+	} else {
+		nBlocks = defaultNBlocks
+	}
+
+	size -= size % (nBlocks+2*border)
 
 	item := path[0]
 
@@ -59,13 +76,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	info := strings.TrimSuffix(item, ".png")
 	id := identicon.FromInfo([]byte(info))
 
-	log.Println("DEBUG-BEFORE")
-
-	pngData, err := id.Render(size, nBlocks, hashKey, bgColour)
-	if err != nil {
-		http.Error(w, "", http.StatusInternalServerError)
-		return
-	}
+	pngData := id.Hash([]byte(info)).Design(nBlocks).Render(size, border, bgColour)
 
 	log.Println("Created identicon for", info)
 	w.Header().Set("Content-Type", "image/png")
